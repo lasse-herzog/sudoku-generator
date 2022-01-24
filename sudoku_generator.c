@@ -1,13 +1,15 @@
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 int sudoku_grid[9][9];
 char username[20];
 
 /**
- * Prints the active sudoku to the console including row and column description and the username of the current player
- * stored in username.
+ * Prints the sudoku represented by sudoku_grid to the console including row and column description and the username of
+ * the current player stored in username.
  */
 void PrintSudoku() {
   printf("Player: %s\n", username);
@@ -126,11 +128,91 @@ int SetDigit(int row, char column, int digit) {
   return 1;
 }
 
+/**
+ * Function to fill the diagonal subgrids (top-left, middle, bottom-right) by iterating through them and filling them
+ * with pseudo-random generated numbers.
+ */
+void FillDiagonalSubgrids() {
+  int digit;
+
+  srand(time(NULL));
+
+  for (int subgrid_top_left = 0; subgrid_top_left < 9; subgrid_top_left += 3) {
+    for (int row_index = subgrid_top_left; row_index < subgrid_top_left + 3; ++row_index) {
+      for (int column_index = subgrid_top_left; column_index < subgrid_top_left + 3; ++column_index) {
+        do {
+          digit = (rand() % 9) + 1;
+        } while (!NotInSubgrid(subgrid_top_left, subgrid_top_left, digit));
+
+        sudoku_grid[row_index][column_index] = digit;
+      }
+    }
+  }
+}
+
+/**
+ * This function fills all the missing values which are not in one of the diagonal subgrids
+ * (top-left, middle, bottom-right). It uses an recursive approach to check if a digit is not only valid for a specific
+ * position at the current time but also if it is a valid option for positions which are still empty.
+ * @param row_index row index
+ * @param column_index column index
+ * @return 1 if the sudoku is completely filled or if all levels of recursion below returned 1.
+ * @return 0 if no digit matches the criteria for this position.
+ */
+int FillRemainingPositions(int row_index, int column_index) {
+  // moving to the next row if last column has been reached
+  if (column_index == 9) {
+    column_index = 0;
+    ++row_index;
+  }
+
+  // skipping the diagonal subgrids (top-left, middle, bottom-right) as they are already filled
+  if (column_index < 3 && row_index < 3) {
+    column_index = 3;
+  } else if (column_index == 3 && 3 <= row_index && row_index < 6) {
+    column_index += 3;
+  } else if (column_index == 6 && 6 <= row_index) {
+    ++row_index;
+    column_index = 0;
+  }
+
+  // stopping criterion, all positions of the sudoku grid have been filled
+  if (row_index >= 9) {
+    return 1;
+  }
+
+  for (int digit = 1; digit <= 9; digit++) {
+    if (DigitValid(row_index, column_index, digit)) {
+      sudoku_grid[row_index][column_index] = digit;
+
+      // entering next recursion level
+      if (FillRemainingPositions(row_index, column_index + 1)) {
+        return 1;
+      }
+
+      // digit does not fit in this position
+      // resetting the digit at this position to 0 as checks would get messed up otherwise
+      sudoku_grid[row_index][column_index] = 0;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Generates a Sudoku by first filling 3 diagonal subgrids and than recursively filling the rest of the grid.
+ */
+void GenerateSudoku() {
+  FillDiagonalSubgrids();
+  FillRemainingPositions(0, 3);
+}
+
 int main() {
   printf("Please enter your username: ");
   fgets(username, 20, stdin);
   username[strcspn(username, "\n")] = 0;
 
+  GenerateSudoku();
   PrintSudoku();
 
   int running = 1;
