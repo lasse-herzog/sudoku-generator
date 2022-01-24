@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 int sudoku_grid[9][9];
 char username[20];
@@ -32,10 +33,50 @@ void PrintSudoku() {
   }
 }
 
+/**
+ * Sets digit at the position specified by the row and column parameters. Returns 0 if one of the parameters was faulty
+ * or 1 if the digit was set successfully.
+ * @param row index of row as it is displayed on screen, range: 1-9
+ * @param column index of column in form of a char as it is displayed on screen, range a-i
+ * @param digit digit to be assigned to this position
+ * @return 1 if the digit was set successfully
+ * @return 0 if either row or column index is out of bounds
+ */
+int SetDigit(int row, char column, int digit) {
+  column = (char) tolower(column);
+
+  if (column < 'a' || 'i' < column || row < 1 || 9 < row || digit < 1 || 9 < digit) {
+    return 0;
+  }
+
+  int row_index = row - 1;
+  int column_index = column - 'a';
+
+  sudoku_grid[row_index][column_index] = digit;
+
+  return 1;
+}
+
 int main() {
   printf("Please enter your username: ");
   fgets(username, 20, stdin);
   username[strcspn(username, "\n")] = 0;
 
   PrintSudoku();
+
+  int running = 1;
+  int row;
+  char column;
+  int digit;
+
+  while (running) {
+    printf("Please enter a field (input format: [column][row], e.g. a5): ");
+    scanf("%c%d", &column, &row);
+    printf("Enter digit: ");
+    scanf("%d", &digit);
+
+    if (SetDigit(row, column, digit)) {
+      PrintSudoku();
+    }
+  }
 }
