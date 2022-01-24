@@ -8,10 +8,11 @@ int sudoku_grid[9][9];
 char username[20];
 
 /**
- * Prints the sudoku represented by sudoku_grid to the console including row and column description and the username of
- * the current player stored in username.
+ * Prints the sudoku represented by the sudoku parameter to the console including row and column description and the
+ * username of the current player stored in username.
+ * @param sudoku the sudoku to be printed
  */
-void PrintSudoku() {
+void PrintSudoku(int sudoku[9][9]) {
   printf("Player: %s\n", username);
   printf("  abc def ghi\n");
   printf("  --- --- ---\n");
@@ -20,7 +21,7 @@ void PrintSudoku() {
     printf("%d|", row + 1);
 
     for (int column = 0; column < 9; ++column) {
-      int current_digit = sudoku_grid[row][column];
+      int current_digit = sudoku[row][column];
       current_digit ? printf("%d", current_digit) : printf(" ");
 
       if (!((column + 1) % 3)) {
@@ -213,7 +214,7 @@ int main() {
   username[strcspn(username, "\n")] = 0;
 
   GenerateSudoku();
-  PrintSudoku();
+  PrintSudoku(sudoku_grid);
 
   int running = 1;
   int row;
@@ -227,7 +228,7 @@ int main() {
     scanf("%d", &digit);
 
     if (SetDigit(row, column, digit)) {
-      PrintSudoku();
+      PrintSudoku(sudoku_grid);
     }
   }
 }
