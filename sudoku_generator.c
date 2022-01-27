@@ -5,6 +5,7 @@
 #include <time.h>
 
 int sudoku_grid[9][9];
+int sudoku_solution[9][9];
 char username[20];
 
 /**
@@ -38,16 +39,17 @@ void PrintSudoku(int sudoku[9][9]) {
 
 /**
  * Checks if a subgrid already contains digit.
+ * @param sudoku the sudoku grid in which the check will be performed
  * @param row_start row index of top-left corner of subgrid to check
  * @param column_start column index of top-left corner of subgrid to check
  * @param digit digit to check presence in subgrid for
  * @return 1 if subgrid doesn't contain digit
  * @return 0 if subgrid contains digit
  */
-int NotInSubgrid(int row_start, int column_start, int digit) {
+int NotInSubgrid(int sudoku[9][9], int row_start, int column_start, int digit) {
   for (int row_index = row_start; row_index < row_start + 3; row_index++) {
     for (int column_index = column_start; column_index < column_start + 3; column_index++) {
-      if (sudoku_grid[row_index][column_index] == digit) {
+      if (sudoku[row_index][column_index] == digit) {
         return 0;
       }
     }
@@ -58,14 +60,15 @@ int NotInSubgrid(int row_start, int column_start, int digit) {
 
 /**
  * Checks if a row already contains digit.
+ * @param sudoku the sudoku grid in which the check will be performed
  * @param row index of row to check
  * @param digit digit to check presence in row for
  * @return 1 if row doesn't contain digit
  * @return 0 if row contains digit
  */
-int NotInRow(int row, int digit) {
+int NotInRow(int sudoku[9][9], int row, int digit) {
   for (int column = 0; column < 9; column++) {
-    if (sudoku_grid[row][column] == digit) {
+    if (sudoku[row][column] == digit) {
       return 0;
     }
   }
@@ -75,14 +78,15 @@ int NotInRow(int row, int digit) {
 
 /**
  * Checks if a column already contains digit.
+ * @param sudoku the sudoku grid in which the check will be performed
  * @param column index of column to check
  * @param digit digit to check presence in column for
  * @return 1 if column doesn't contain digit
  * @return 0 if column contains digit
  */
-int NotInColumn(int column, int digit) {
+int NotInColumn(int sudoku[9][9], int column, int digit) {
   for (int row = 0; row < 9; row++) {
-    if (sudoku_grid[row][column] == digit) {
+    if (sudoku[row][column] == digit) {
       return 0;
     }
   }
@@ -93,16 +97,17 @@ int NotInColumn(int column, int digit) {
 /**
  * Checks whether a digit is valid at the position specified by the parameters row and column or not.
  * By the rules of sudoku a digit is only valid if it is not already present in the subgrid, row or column.
+ * @param sudoku the sudoku grid in which the check will be performed
  * @param row index of row
  * @param column index of column
  * @param digit digit to check validity for
  * @return 1 if digit is a valid option for this position
  * @return 0 if digit is already present in subgrid, row or column
  */
-int DigitValid(int row, int column, int digit) {
-  return NotInSubgrid(row - (row % 3), column - (column % 3), digit)
-    && NotInRow(row, digit)
-    && NotInColumn(column, digit);
+int DigitValid(int sudoku[9][9], int row, int column, int digit) {
+  return NotInSubgrid(sudoku, row - (row % 3), column - (column % 3), digit)
+      && NotInRow(sudoku, row, digit)
+      && NotInColumn(sudoku, column, digit);
 }
 
 /**
@@ -136,16 +141,14 @@ int SetDigit(int row, char column, int digit) {
 void FillDiagonalSubgrids() {
   int digit;
 
-  srand(time(NULL));
-
   for (int subgrid_top_left = 0; subgrid_top_left < 9; subgrid_top_left += 3) {
     for (int row_index = subgrid_top_left; row_index < subgrid_top_left + 3; ++row_index) {
       for (int column_index = subgrid_top_left; column_index < subgrid_top_left + 3; ++column_index) {
         do {
           digit = (rand() % 9) + 1;
-        } while (!NotInSubgrid(subgrid_top_left, subgrid_top_left, digit));
+        } while (!NotInSubgrid(sudoku_solution, subgrid_top_left, subgrid_top_left, digit));
 
-        sudoku_grid[row_index][column_index] = digit;
+        sudoku_solution[row_index][column_index] = digit;
       }
     }
   }
@@ -183,8 +186,8 @@ int FillRemainingPositions(int row_index, int column_index) {
   }
 
   for (int digit = 1; digit <= 9; digit++) {
-    if (DigitValid(row_index, column_index, digit)) {
-      sudoku_grid[row_index][column_index] = digit;
+    if (DigitValid(sudoku_solution, row_index, column_index, digit)) {
+      sudoku_solution[row_index][column_index] = digit;
 
       // entering next recursion level
       if (FillRemainingPositions(row_index, column_index + 1)) {
@@ -193,7 +196,7 @@ int FillRemainingPositions(int row_index, int column_index) {
 
       // digit does not fit in this position
       // resetting the digit at this position to 0 as checks would get messed up otherwise
-      sudoku_grid[row_index][column_index] = 0;
+      sudoku_solution[row_index][column_index] = 0;
     }
   }
 
@@ -201,11 +204,42 @@ int FillRemainingPositions(int row_index, int column_index) {
 }
 
 /**
+ * This Function removes digits from the generated Sudoku so that it becomes an actual challenge for
+ * the player ;).
+ * @param amount amount of digits to be removed from the grid, the more, the higher the difficulty of the sudoku
+ */
+void RemoveDigits(int amount) {
+  while (amount != 0) {
+    int cell_id = rand() % 80;
+
+    int row = cell_id / 9;
+    int column = cell_id % 9;
+
+    if (sudoku_grid[row][column] != 0) {
+      sudoku_grid[row][column] = 0;
+      amount--;
+    }
+  }
+}
+
+/**
  * Generates a Sudoku by first filling 3 diagonal subgrids and than recursively filling the rest of the grid.
+ * Once finished depending on the chosen difficulty a certain number of digits will be removed from the grid.
  */
 void GenerateSudoku() {
+  srand(time(NULL));
+
   FillDiagonalSubgrids();
   FillRemainingPositions(0, 3);
+
+  // copy the values from the solution to the actual sudoku grid before removing digits
+  for (int i = 0; i < 9; ++i) {
+    for (int j = 0; j < 9; ++j) {
+      sudoku_grid[i][j] = sudoku_solution[i][j];
+    }
+  }
+
+  RemoveDigits(17);
 }
 
 int main() {
@@ -214,6 +248,8 @@ int main() {
   username[strcspn(username, "\n")] = 0;
 
   GenerateSudoku();
+
+
   PrintSudoku(sudoku_grid);
 
   int running = 1;
