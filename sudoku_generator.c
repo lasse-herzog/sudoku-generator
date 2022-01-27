@@ -135,7 +135,8 @@ int SetDigit(int row, char column, int digit) {
   int row_index = row - 1;
   int column_index = column - 'a';
 
-  if (!mutability_map[row_index][column_index] || column < 'a' || 'i' < column || row < 1 || 9 < row || digit < 1 || 9 < digit) {
+  if (!mutability_map[row_index][column_index] || column < 'a' || 'i' < column || row < 1 || 9 < row || digit < 1
+      || 9 < digit) {
     return 0;
   }
 
@@ -249,7 +250,7 @@ void GenerateSudoku() {
     }
   }
 
-  RemoveDigits(17);
+  RemoveDigits(1);
 }
 
 /**
@@ -264,6 +265,18 @@ void InitializeMutabilityMap() {
       }
     }
   }
+}
+
+int CheckIfFinished() {
+  for (int row = 0; row < 9; ++row) {
+    for (int column = 0; column < 9; ++column) {
+      if (sudoku_grid[row][column] != sudoku_solution[row][column]) {
+        return 0;
+      }
+    }
+  }
+
+  return 1;
 }
 
 int main() {
@@ -288,8 +301,13 @@ int main() {
     printf("Enter digit: ");
     scanf("%d", &digit);
 
-    if (SetDigit(row, column, digit)) {
-      PrintSudoku();
+    if (!SetDigit(row, column, digit)) {
+      continue;
     }
+
+    PrintSudoku();
+    if (CheckIfFinished()) {
+      running = 0;
+    };
   }
 }
