@@ -2,7 +2,7 @@
 
 /**
  * Checks if a subgrid already contains digit.
- * @param sudoku the sudoku grid in which the check will be performed
+ * @param sudoku the sudoku sudoku_window in which the check will be performed
  * @param row_start row index of top-left corner of subgrid to check
  * @param column_start column index of top-left corner of subgrid to check
  * @param digit digit to check presence in subgrid for
@@ -23,7 +23,7 @@ int NotInSubgrid(int sudoku[9][9], int row_start, int column_start, int digit) {
 
 /**
  * Checks if a row already contains digit.
- * @param sudoku the sudoku grid in which the check will be performed
+ * @param sudoku the sudoku sudoku_window in which the check will be performed
  * @param row index of row to check
  * @param digit digit to check presence in row for
  * @return 1 if row doesn't contain digit
@@ -41,7 +41,7 @@ int NotInRow(int sudoku[9][9], int row, int digit) {
 
 /**
  * Checks if a column already contains digit.
- * @param sudoku the sudoku grid in which the check will be performed
+ * @param sudoku the sudoku sudoku_window in which the check will be performed
  * @param column index of column to check
  * @param digit digit to check presence in column for
  * @return 1 if column doesn't contain digit
@@ -59,8 +59,8 @@ int NotInColumn(int sudoku[9][9], int column, int digit) {
 
 /**
  * Checks whether a digit is valid at the position specified by the parameters row and column or not.
- * By the rules of sudoku a digit is only valid if it is not already present in the subgrid, row or column.
- * @param sudoku the sudoku grid in which the check will be performed
+ * By the rules of sudoku a digit is only valid if main_menu_items is not already present in the subgrid, row or column.
+ * @param sudoku the sudoku sudoku_window in which the check will be performed
  * @param row index of row
  * @param column index of column
  * @param digit digit to check validity for
